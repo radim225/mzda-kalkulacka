@@ -253,6 +253,11 @@ function bind() {
       render();
     });
   }
+  for (const input of [els.hppGross, els.hppBonus, els.osvcIncome]) {
+    input.addEventListener("focus", () => {
+      requestAnimationFrame(() => input.select());
+    });
+  }
 }
 
 function setupPwa() {
