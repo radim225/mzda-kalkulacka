@@ -2,6 +2,10 @@ import "./styles.css";
 import { FLAT_TAX_MONTH } from "./constants.js";
 import { formatKc, formatSignedKc, parseKc } from "./format.js";
 import { compareHppOsvc } from "./tax/compare.js";
+import {
+  formatFlatTaxSuggestion,
+  suggestFlatTaxBand,
+} from "./tax/flatTaxBand.js";
 import { calcHpp } from "./tax/hpp.js";
 import { calcOsvc } from "./tax/osvc.js";
 
@@ -18,7 +22,10 @@ const els = {
   hppEmployerCard: document.getElementById("hpp-employer-card"),
   osvcIncome: document.getElementById("osvc-income"),
   osvcIncomeLabel: document.getElementById("osvc-income-label"),
-  osvcBands: document.getElementById("osvc-bands"),
+  osvcPausalBox: document.getElementById("osvc-pausal-box"),
+  osvcKlasikaNote: document.getElementById("osvc-klasika-note"),
+  osvcBandSuggest: document.getElementById("osvc-band-suggest"),
+  osvcBandReset: document.getElementById("osvc-band-reset"),
   osvcAdvances: document.getElementById("osvc-advances"),
   periodBtns: document.querySelectorAll("[data-period]"),
   bandBtns: document.querySelectorAll("[data-band]"),
@@ -35,6 +42,7 @@ const state = {
   osvcIncome: "80000",
   osvcMode: "klasika",
   osvcBand: "I",
+  osvcBandManual: false,
 };
 
 function loadState() {
@@ -110,8 +118,23 @@ function renderHpp() {
   );
 }
 
+function applySuggestedBand() {
+  const suggestion = suggestFlatTaxBand(yearlyOsvcIncome());
+  if (
+    state.osvcMode === "pausal" &&
+    !state.osvcBandManual &&
+    suggestion.band &&
+    state.osvcBand !== suggestion.band
+  ) {
+    state.osvcBand = suggestion.band;
+    saveState();
+  }
+  return suggestion;
+}
+
 function renderOsvc() {
   const yearly = yearlyOsvcIncome();
+  const suggestion = applySuggestedBand();
   const r = calcOsvc({
     incomeYearly: yearly,
     mode: state.osvcMode,
@@ -119,6 +142,11 @@ function renderOsvc() {
   });
   const monthly = r.takeHome / 12;
   const pausal = state.osvcMode === "pausal";
+  const overridden =
+    pausal &&
+    suggestion.eligible &&
+    state.osvcBandManual &&
+    state.osvcBand !== suggestion.band;
 
   document.getElementById("osvc-hero-label").textContent = pausal
     ? "Take-home měsíčně (paušální daň)"
@@ -129,18 +157,34 @@ function renderOsvc() {
   document.getElementById("osvc-income-label").textContent =
     state.osvcPeriod === "year" ? "Roční příjem (bez DPH)" : "Měsíční příjem (bez DPH)";
 
-  els.osvcBands.hidden = !pausal;
+  els.osvcPausalBox.hidden = !pausal;
+  els.osvcKlasikaNote.hidden = pausal;
   document.getElementById("osvc-exp-row").hidden = pausal;
   document.getElementById("osvc-zd-row").hidden = pausal;
   document.getElementById("osvc-sp-row").hidden = pausal;
   document.getElementById("osvc-zp-row").hidden = pausal;
   els.osvcAdvances.hidden = pausal;
 
+  if (pausal) {
+    els.osvcBandSuggest.textContent = formatFlatTaxSuggestion(
+      suggestion,
+      state.osvcBand,
+    );
+    els.osvcBandSuggest.classList.toggle("override", overridden);
+    els.osvcBandSuggest.classList.toggle("warn", !suggestion.eligible);
+    els.osvcBandReset.hidden = !overridden;
+    for (const btn of els.bandBtns) {
+      const on = btn.dataset.band === state.osvcBand;
+      btn.classList.toggle("on", on);
+      btn.setAttribute("aria-pressed", String(on));
+    }
+  }
+
   document.getElementById("osvc-p").textContent = formatKc(r.income);
   document.getElementById("osvc-exp").textContent = formatKc(r.expensesPausal);
   document.getElementById("osvc-zd").textContent = formatKc(r.taxBaseRounded);
   document.getElementById("osvc-tax-label").textContent = pausal
-    ? `Paušální daň pásmo ${state.osvcBand} (12× ${formatKc(FLAT_TAX_MONTH[state.osvcBand])})`
+    ? `Paušální daň pásmo ${state.osvcBand} (12× ${formatKc(FLAT_TAX_MONTH[state.osvcBand] ?? FLAT_TAX_MONTH.I)})`
     : "Daň z příjmů";
   document.getElementById("osvc-tax").textContent = `− ${formatKc(r.tax)}`;
   document.getElementById("osvc-sp").textContent = `− ${formatKc(r.soc)}`;
@@ -188,7 +232,9 @@ function syncForm() {
     radio.checked = radio.value === state.osvcMode;
   }
   for (const btn of els.bandBtns) {
-    btn.classList.toggle("on", btn.dataset.band === state.osvcBand);
+    const on = btn.dataset.band === state.osvcBand;
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", String(on));
   }
   setTab(state.tab);
 }
@@ -247,12 +293,19 @@ function bind() {
   }
   for (const btn of els.bandBtns) {
     btn.addEventListener("click", () => {
+      const suggested = suggestFlatTaxBand(yearlyOsvcIncome());
       state.osvcBand = btn.dataset.band;
+      state.osvcBandManual = state.osvcBand !== suggested.band;
       saveState();
       syncForm();
       render();
     });
   }
+  els.osvcBandReset.addEventListener("click", () => {
+    state.osvcBandManual = false;
+    saveState();
+    render();
+  });
   for (const input of [els.hppGross, els.hppBonus, els.osvcIncome]) {
     input.addEventListener("focus", () => {
       requestAnimationFrame(() => input.select());
