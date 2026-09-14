@@ -10,7 +10,8 @@
  * - Nařízení vlády: všeobecný vyměřovací základ / průměrná mzda 2026 = 48 967 Kč
  * - Max. vyměřovací základ SP 2026 = 48 × průměrná mzda = 2 350 416 Kč
  * - Hranice 23 % daně = 36 × průměrná mzda (1 762 812 Kč / rok, 146 901 Kč / měsíc)
- * - Finanční správa: paušální daň 2026 (pásmo I po úpravě od 7/2026)
+ * - Finanční správa: paušální daň 2026 (pásmo I po úpravě od 7/2026;
+ *   limity příjmů I/II/III viz FLAT_TAX_LIMIT, zálohy viz FLAT_TAX_MONTH)
  * - ČSSZ: min. zálohy OSVČ hlavní činnost — 1. pololetí 5 720 Kč, od 7/2026 5 005 Kč
  *
  * Model je orientační a není daňové poradenství.
@@ -69,4 +70,24 @@ export const FLAT_TAX_MONTH = Object.freeze({
   I: 9_162,
   II: 16_745,
   III: 27_139,
+});
+
+/**
+ * Limity příjmů pro pásma paušální daně (Finanční správa, § 7a ZDP).
+ * Podíl činností s výdajovým paušálem 60 % / 80 % musí být alespoň 75 %.
+ *
+ * I. pásmo: do 1 mil. vždy; do 1,5 mil. při ≥75 % s 60% nebo 80% paušálem;
+ *           do 2 mil. jen při ≥75 % s 80% paušálem.
+ * II. pásmo: do 1,5 mil. vždy; do 2 mil. při ≥75 % s 60% nebo 80% paušálem.
+ * III. pásmo: do 2 mil. bez ohledu na druh činnosti.
+ * Nad 2 mil. paušální daň nelze.
+ */
+export const FLAT_TAX_SHARE_MIN = 0.75;
+export const FLAT_TAX_LIMIT = Object.freeze({
+  alwaysI: 1_000_000,
+  share60or80_I: 1_500_000,
+  share80_I: 2_000_000,
+  alwaysII: 1_500_000,
+  share60or80_II: 2_000_000,
+  alwaysIII: 2_000_000,
 });

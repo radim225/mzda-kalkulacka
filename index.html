@@ -135,7 +135,25 @@
             </div>
           </dl>
           <p class="hint" id="hpp-zb-hint"></p>
+          <p class="hint">
+            Daňové pásmo 15/23 % se počítá automaticky z daňového základu
+            (hranice 3× průměrná mzda).
+          </p>
         </div>
+
+        <details class="howto">
+          <summary>Jak to funguje</summary>
+          <p>
+            <strong>Sleva na poplatníka</strong> snižuje daň z příjmů, ne hrubou
+            mzdu. Je 2&nbsp;570 Kč měsíčně (30&nbsp;840 Kč za rok) a uplatní se,
+            když máte u zaměstnavatele podepsané prohlášení poplatníka.
+          </p>
+          <p>
+            <strong>Daň 15 / 23 %</strong> se počítá sama ze základu daně.
+            Sazba 23 % se uplatní až z částky nad 3× průměrnou mzdu měsíčně
+            (36× průměrná mzda za rok).
+          </p>
+        </details>
 
         <div class="card" id="hpp-employer-card" hidden>
           <h2>Cena práce</h2>
@@ -226,11 +244,50 @@
           </label>
         </fieldset>
 
-        <div id="osvc-bands" class="seg bands" hidden role="group" aria-label="Pásmo paušální daně">
-          <button type="button" data-band="I" class="on">I · 9&nbsp;162 Kč</button>
-          <button type="button" data-band="II">II · 16&nbsp;745 Kč</button>
-          <button type="button" data-band="III">III · 27&nbsp;139 Kč</button>
+        <p class="note" id="osvc-klasika-note">
+          V klasickém režimu se pásma I / II / III paušální daně nepoužívají.
+          Daň a pojistné se počítají z daňového základu po 60% paušálu.
+        </p>
+
+        <div id="osvc-pausal-box" hidden>
+          <p class="suggest" id="osvc-band-suggest"></p>
+          <div
+            id="osvc-bands"
+            class="seg bands"
+            role="group"
+            aria-label="Pásmo paušální daně (návrh lze změnit)"
+          >
+            <button type="button" data-band="I" class="on">I · 9&nbsp;162 Kč</button>
+            <button type="button" data-band="II">II · 16&nbsp;745 Kč</button>
+            <button type="button" data-band="III">III · 27&nbsp;139 Kč</button>
+          </div>
+          <p class="hint tight">
+            Pásmo závisí na příjmu a druhu činnosti. Návrh předpokládá IT
+            s 60% paušálem (≥&nbsp;75 % příjmů). Můžete ho změnit.
+          </p>
+          <button type="button" class="text-btn" id="osvc-band-reset" hidden>
+            Použít navržené pásmo
+          </button>
         </div>
+
+        <details class="howto">
+          <summary>Jak to funguje</summary>
+          <p>
+            <strong>Klasika + 60% paušál</strong> počítá daň a pojistné
+            z příjmu po odečtení 60 % výdajů. Pásma I / II / III paušální daně
+            se tady nepoužívají.
+          </p>
+          <p>
+            <strong>Paušální daň</strong> je jedna měsíční záloha místo daně,
+            sociálního i zdravotního pojištění. Pásmo určuje Finanční správa
+            podle příjmu a druhu činnosti (u IT s 60% paušálem a alespoň 75 %
+            takových příjmů: I do 1,5 mil., II do 2 mil. Kč).
+          </p>
+          <p>
+            <strong>Paušální výdaje</strong> snižují daňový základ, ale z účtu
+            je neplatíte. Take-home = příjem − daň − SP − ZP.
+          </p>
+        </details>
 
         <div class="card">
           <h2>Rozklad za rok</h2>
